@@ -1,0 +1,25 @@
+#------------------------------------------------------------------------------
+# Exclude Python cache files
+*.pyc
+__pycache__
+.pytest_cache
+
+# Exclude Python vritual environments
+env*
+
+# Exclude VIM swap files
+*swp
+
+# Exclude enviroment-variable files
+.environment/*
+
+# Exclude 'rope' configuration and cache
+.vscode/.ropeproject
+
+src/service.*.yaml
+src/dispatch.yaml
+src/.gcloudignore
+
+# Data folder
+data/
+#------------------------------------------------------------------------------
