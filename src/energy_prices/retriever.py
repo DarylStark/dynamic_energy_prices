@@ -4,13 +4,13 @@
 
 import logging
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 from time import sleep
 
 import requests
 
 from config_loader import ConfigLoader
-from ep_database.prices import update_gas_price
+from ep_database.prices import update_gas_price, PriceEnergy
 
 
 def data_retriever() -> None:
@@ -81,21 +81,21 @@ def update_prices() -> None:
 
     # Retrieve the data
     logger.info('Retrieving power prices')
-    power_prices = requests.get(
+    power_prices_from_api = requests.get(
         url=power_url,
         timeout=30).json()
 
-    logger.info('Retrieving gas prices')
-    gas_prices = requests.get(
-        url=gas_url,
-        timeout=30).json()
-
     # Convert to dict object
-    power_dict = {x['readingDate']: {'power': x['price']}
-                  for x in power_prices['Prices']}
-    gas_dict = {x['readingDate']: {'gas': x['price']}
-                for x in gas_prices['Prices']}
+    power_prices = [
+        PriceEnergy(
+            date=date.fromisoformat(price['readingDate'].split('T')[0]),
+            time=time.fromisoformat(price['readingDate'].split('T')[1][0:5]),
+            price=price['price']
+        )
+        for price in power_prices_from_api['Prices']
+    ]
 
-    update_gas_price()
+    # Update the database
+    update_gas_price(power_prices)
 
     logger.info('Done syncing prices')

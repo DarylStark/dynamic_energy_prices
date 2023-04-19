@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Date, Float, Integer, Time, DateTime
+from sqlalchemy import (Column, Date, DateTime, Float, Integer, Time,
+                        UniqueConstraint)
 
 from database import Database
 
@@ -7,6 +8,10 @@ class PowerPrice(Database.base_class):
     """ SQL table for power prices """
 
     __tablename__ = 'prices_power'
+
+    __table_args__ = (
+        UniqueConstraint('date', 'time'),
+    )
 
     id = Column(
         Integer,
