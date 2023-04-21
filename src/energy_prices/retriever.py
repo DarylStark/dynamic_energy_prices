@@ -46,7 +46,7 @@ def data_retriever() -> None:
         sleep(1)
 
 
-def get_date_from_api(start: datetime, end: datetime, type: int) -> dict:
+def get_date_from_api(start: datetime, end: datetime, type: str) -> dict:
     """ Function to retrieve data from a specific URL """
 
     logger = logging.getLogger('get_date_from_api')
