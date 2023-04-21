@@ -14,6 +14,9 @@ class GasPrice(Database.base_class):
     date = Column(
         Date,
         nullable=False)
+    time = Column(
+        Time,
+        nullable=False)
     price = Column(
         Float,
         nullable=False)
@@ -24,4 +27,4 @@ class GasPrice(Database.base_class):
 
     def __repr__(self) -> str:
         """ Represents objects of this class. """
-        return f'<GasPrice for "{self.date}" (id: {self.id}) at {hex(id(self))}>'
+        return f'<GasPrice for "{self.date}" at "{self.time}" [{self.price:.2f}] (id: {self.id}) at {hex(id(self))}>'

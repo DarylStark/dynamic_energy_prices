@@ -32,4 +32,4 @@ class PowerPrice(Database.base_class):
 
     def __repr__(self) -> str:
         """ Represents objects of this class. """
-        return f'<EnergyPrice for "{self.date}" at "{self.time}" (id: {self.id}) at {hex(id(self))}>'
+        return f'<EnergyPrice for "{self.date}" at "{self.time}" [{self.price:.2f}] (id: {self.id}) at {hex(id(self))}>'

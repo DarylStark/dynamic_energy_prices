@@ -55,12 +55,12 @@ def update_prices() -> None:
     logger.info('Syncing prices')
 
     # Create start time strings
-    start = datetime.now()
+    start = datetime.now() - timedelta(hours=4)
     start_date = start.strftime('%Y-%m-%d')
     start_time = start.strftime('%H:00:00')
 
     # Create end time strings
-    end = start + timedelta(hours=49)
+    end = datetime.now() + timedelta(hours=48)
     end_date = end.strftime('%Y-%m-%d')
     end_time = end.strftime('%H:59:59')
 
