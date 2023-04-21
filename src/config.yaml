@@ -7,7 +7,7 @@ default:
     logging:
       level: 40
     retrieval:
-      max_age_in_minutes: 45
+      max_age_in_minutes: 15
       url_template: "https://api.energyzero.nl/v1/energyprices?fromDate={{ start_date }}T{{ start_time }}.000Z&tillDate={{ end_date }}T{{ end_time }}.999Z&interval=4&usageType={{ type }}&inclBtw=true"
     data_folder: ${env:DATA_FOLDER}
 

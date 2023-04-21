@@ -10,7 +10,7 @@ from time import sleep
 import requests
 
 from config_loader import ConfigLoader
-from ep_database.prices import update_gas_price, PriceEnergy
+from ep_database.prices import Price, save_power_price, save_gas_price
 
 
 def data_retriever() -> None:
@@ -18,7 +18,7 @@ def data_retriever() -> None:
         as soon as it is needed """
 
     # Create a logger for the My REST API package
-    logger = logging.getLogger('retriever')
+    logger = logging.getLogger('data_retriever')
 
     datetime_last_check = datetime(
         year=2022, month=1, day=1, hour=0, minute=0, second=0)
@@ -46,48 +46,63 @@ def data_retriever() -> None:
         sleep(1)
 
 
-def update_prices() -> None:
-    """ The method to sync the prices """
+def get_date_from_api(start: datetime, end: datetime, type: int) -> dict:
+    """ Function to retrieve data from a specific URL """
 
-    url_template = ConfigLoader.config['retrieval']['url_template']
+    logger = logging.getLogger('get_date_from_api')
+
+    # Get the URL template
+    url = ConfigLoader.config['retrieval']['url_template']
+
+    # Generate the Base URL
+    url = url.replace('{{ start_date }}',
+                      urllib.parse.quote(start.strftime('%Y-%m-%d')))
+    url = url.replace('{{ start_time }}',
+                      urllib.parse.quote(start.strftime('%H:00:00')))
+    url = url.replace('{{ end_date }}',
+                      urllib.parse.quote(end.strftime('%Y-%m-%d')))
+    url = url.replace('{{ end_time }}',
+                      urllib.parse.quote(end.strftime('%H:59:59')))
+
+    # Generate the URL for power
+    power_url = url.replace('{{ type }}', type)
+
+    # Retrieve the data
+    logger.info(f'Retrieving prices from URL "{url}"')
+    return requests.get(
+        url=power_url,
+        timeout=30).json()
+
+
+def update_prices() -> None:
+    """ The function to sync the prices """
 
     logger = logging.getLogger('sync_prices')
     logger.info('Syncing prices')
 
-    # Create start time strings
+    # Create the time objects
     start = datetime.now() - timedelta(hours=4)
-    start_date = start.strftime('%Y-%m-%d')
-    start_time = start.strftime('%H:00:00')
-
-    # Create end time strings
     end = datetime.now() + timedelta(hours=48)
-    end_date = end.strftime('%Y-%m-%d')
-    end_time = end.strftime('%H:59:59')
 
-    # Generate the Base URL
-    base_url = url_template
-    base_url = base_url.replace(
-        '{{ start_date }}', urllib.parse.quote(start_date))
-    base_url = base_url.replace(
-        '{{ start_time }}', urllib.parse.quote(start_time))
-    base_url = base_url.replace('{{ end_date }}', urllib.parse.quote(end_date))
-    base_url = base_url.replace('{{ end_time }}', urllib.parse.quote(end_time))
+    # Update the correct fields
+    update_energy_prices(start, end)
+    update_gas_prices(start, end)
 
-    # Generate the URL for power
-    power_url = base_url.replace('{{ type }}', '1')
+    logger.info('Done syncing prices')
 
-    # Generate the URL for gas
-    gas_url = base_url.replace('{{ type }}', '2')
 
-    # Retrieve the data
-    logger.info('Retrieving power prices')
-    power_prices_from_api = requests.get(
-        url=power_url,
-        timeout=30).json()
+def update_energy_prices(start: datetime, end: datetime) -> None:
+    """ Function to update energy prices in the database """
 
-    # Convert to dict object
+    logger = logging.getLogger('update_energy_price')
+    logger.info('Updating power prices')
+
+    # Get the power prices
+    power_prices_from_api = get_date_from_api(start, end, '1')
+
+    # Convert to the correct object types
     power_prices = [
-        PriceEnergy(
+        Price(
             date=date.fromisoformat(price['readingDate'].split('T')[0]),
             time=time.fromisoformat(price['readingDate'].split('T')[1][0:5]),
             price=price['price']
@@ -95,7 +110,28 @@ def update_prices() -> None:
         for price in power_prices_from_api['Prices']
     ]
 
-    # Update the database
-    update_gas_price(power_prices)
+    # Save it to the database
+    save_power_price(power_prices)
 
-    logger.info('Done syncing prices')
+
+def update_gas_prices(start: datetime, end: datetime) -> None:
+    """ Function to update gas prices in the database """
+
+    logger = logging.getLogger('update_gas_prices')
+    logger.info('Updating gas prices')
+
+    # Get the power prices
+    gas_prices_from_api = get_date_from_api(start, end, '4')
+
+    # Convert to the correct object types
+    gas_prices = [
+        Price(
+            date=date.fromisoformat(price['readingDate'].split('T')[0]),
+            time=time.fromisoformat(price['readingDate'].split('T')[1][0:5]),
+            price=price['price']
+        )
+        for price in gas_prices_from_api['Prices']
+    ]
+
+    # Save it to the database
+    save_gas_price(gas_prices)
