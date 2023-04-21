@@ -118,7 +118,7 @@ def update_power_prices(start: datetime, end: datetime) -> None:
 
     # Save it to the database
     save_power_price(power_prices)
-    bus.emit('power_prices_synced')
+    bus.emit('power_prices_synced', power_prices)
 
 
 def update_gas_prices(start: datetime, end: datetime) -> None:
@@ -142,4 +142,4 @@ def update_gas_prices(start: datetime, end: datetime) -> None:
 
     # Save it to the database
     save_gas_price(gas_prices)
-    bus.emit('gas_prices_synced')
+    bus.emit('gas_prices_synced', gas_prices)
