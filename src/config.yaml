@@ -15,4 +15,4 @@ development:
   logging:
     level: 10
   retrieval:
-    max_age_in_minutes: 1
+    max_age_in_minutes: 15
