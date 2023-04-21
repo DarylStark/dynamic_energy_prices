@@ -4,7 +4,7 @@
 
 import logging
 import urllib.parse
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from time import sleep
 
 import requests
@@ -110,7 +110,8 @@ def update_power_prices(start: datetime, end: datetime) -> None:
     power_prices = [
         Price(
             date=date.fromisoformat(price['readingDate'].split('T')[0]),
-            time=time.fromisoformat(price['readingDate'].split('T')[1][0:5]),
+            time=time.fromisoformat(price['readingDate'].split('T')[1][0:5]).replace(
+                tzinfo=timezone.utc),
             price=price['price']
         )
         for price in power_prices_from_api['Prices']
@@ -134,7 +135,8 @@ def update_gas_prices(start: datetime, end: datetime) -> None:
     gas_prices = [
         Price(
             date=date.fromisoformat(price['readingDate'].split('T')[0]),
-            time=time.fromisoformat(price['readingDate'].split('T')[1][0:5]),
+            time=time.fromisoformat(price['readingDate'].split('T')[1][0:5]).replace(
+                tzinfo=timezone.utc),
             price=price['price']
         )
         for price in gas_prices_from_api['Prices']

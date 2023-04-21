@@ -10,6 +10,7 @@ default:
       max_age_in_minutes: 15
       url_template: "https://api.energyzero.nl/v1/energyprices?fromDate={{ start_date }}T{{ start_time }}.000Z&tillDate={{ end_date }}T{{ end_time }}.999Z&interval=4&usageType={{ type }}&inclBtw=true"
     data_folder: ${env:DATA_FOLDER}
+    timezone: Europe/Amsterdam
 
 development:
   logging:

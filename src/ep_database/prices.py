@@ -8,6 +8,8 @@ from ep_model.price import Price
 from datetime import datetime
 from pydantic import validate_arguments
 
+from sqlalchemy import or_
+
 
 @validate_arguments
 def save_power_price(prices: list[Price]) -> None:
@@ -65,3 +67,27 @@ def save_gas_price(prices: list[Price]) -> None:
                 updated_on=datetime.now()
             )
             session.add(price_object)
+
+
+@validate_arguments
+def get_power_prices(start: datetime, end: datetime) -> list[Price] | None:
+    """ Method to retrieve power prices from the database """
+
+    start = start.replace(tzinfo=None)
+    end = end.replace(tzinfo=None)
+
+    with DatabaseSession(commit_on_end=True, expire_on_commit=False) as session:
+        prices = session.query(PowerPrice)
+        if prices.count() > 0:
+            return [
+                Price(
+                    date=price.date,
+                    time=price.time,
+                    price=price.price
+                ) for price in prices.all()
+                if (datetime.combine(price.date, price.time) >= start and
+                    datetime.combine(price.date, price.time) < end)
+            ]
+
+    # Nothing found
+    return None
