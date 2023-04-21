@@ -3,16 +3,10 @@
 
 from database import DatabaseSession
 from ep_database_model import GasPrice, PowerPrice
+from ep_model.price import Price
 
-from datetime import date, time, datetime
-from pydantic import BaseModel, validate_arguments
-
-
-class Price(BaseModel):
-    """ Model for EnergyPrices """
-    date: date
-    time: time
-    price: float
+from datetime import datetime
+from pydantic import validate_arguments
 
 
 @validate_arguments

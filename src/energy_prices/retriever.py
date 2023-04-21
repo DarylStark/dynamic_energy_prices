@@ -37,8 +37,12 @@ def data_retriever() -> None:
         if age > max_age_in_min:
             logger.info('Information is too old and should be updated!')
 
+            # Create the time objects for the update
+            start = datetime.now() - timedelta(hours=4)
+            end = datetime.now() + timedelta(hours=48)
+
             # Start the process to update the prices
-            update_prices()
+            update_prices(start, end)
             logger.info('Prices are updated!')
             datetime_last_check = datetime.now()
 
@@ -74,15 +78,11 @@ def get_date_from_api(start: datetime, end: datetime, type: str) -> dict:
         timeout=30).json()
 
 
-def update_prices() -> None:
+def update_prices(start: datetime, end: datetime) -> None:
     """ The function to sync the prices """
 
     logger = logging.getLogger('sync_prices')
     logger.info('Syncing prices')
-
-    # Create the time objects
-    start = datetime.now() - timedelta(hours=4)
-    end = datetime.now() + timedelta(hours=48)
 
     # Update the correct fields
     update_energy_prices(start, end)
