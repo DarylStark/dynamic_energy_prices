@@ -4,13 +4,15 @@
 
 import logging
 import urllib.parse
-from datetime import datetime, timedelta, date, time
+from datetime import date, datetime, time, timedelta
 from time import sleep
 
 import requests
 
 from config_loader import ConfigLoader
-from ep_database.prices import Price, save_power_price, save_gas_price
+from ep_database.prices import Price, save_gas_price, save_power_price
+
+from .bus import bus
 
 
 def data_retriever() -> None:
@@ -29,12 +31,15 @@ def data_retriever() -> None:
     # Done with the initialization phase
     logger.info('Application initialized')
 
+    bus.emit('data_retriever_thread_initialized')
+
     # Main loop
     while True:
         # Check if the age of the data is too old
         diff: timedelta = datetime.now() - datetime_last_check
         age = diff.total_seconds() / 60
         if age > max_age_in_min:
+            bus.emit('updating_prices_from_retriever')
             logger.info('Information is too old and should be updated!')
 
             # Create the time objects for the update
@@ -85,13 +90,14 @@ def update_prices(start: datetime, end: datetime) -> None:
     logger.info('Syncing prices')
 
     # Update the correct fields
-    update_energy_prices(start, end)
+    update_power_prices(start, end)
     update_gas_prices(start, end)
 
     logger.info('Done syncing prices')
+    bus.emit('prices_synced')
 
 
-def update_energy_prices(start: datetime, end: datetime) -> None:
+def update_power_prices(start: datetime, end: datetime) -> None:
     """ Function to update energy prices in the database """
 
     logger = logging.getLogger('update_energy_price')
@@ -112,6 +118,7 @@ def update_energy_prices(start: datetime, end: datetime) -> None:
 
     # Save it to the database
     save_power_price(power_prices)
+    bus.emit('power_prices_synced')
 
 
 def update_gas_prices(start: datetime, end: datetime) -> None:
@@ -135,3 +142,4 @@ def update_gas_prices(start: datetime, end: datetime) -> None:
 
     # Save it to the database
     save_gas_price(gas_prices)
+    bus.emit('gas_prices_synced')

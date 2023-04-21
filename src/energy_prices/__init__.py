@@ -11,6 +11,8 @@ from config_loader import ConfigLoader
 from .exceptions import ConfigLoadError
 from .retriever import data_retriever
 
+from .bus import bus
+
 # Load the settings
 if not ConfigLoader.load_settings():
     raise ConfigLoadError('Configuration was not loaded.')
@@ -28,10 +30,12 @@ logger = logging.getLogger('MAIN')
 
 # Done with the initialization phase
 logger.info('Application initialized')
+bus.emit('iniitialized')
 
 # Start the retriever function
 retriever_thread = threading.Thread(target=data_retriever, daemon=True)
 retriever_thread.start()
+bus.emit('updater_thread_started')
 
 # Create the Flask App
 flask_app = Flask(__name__)
